@@ -39,7 +39,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
         let broadcast_recipients =
             peers.iter().filter(|(peer_addr, _)| peer_addr != &&addr).map(|(_, ws_sink)| ws_sink);
         for recp in broadcast_recipients {
-            recp.unbounded_send(msg.clone()).unwrap();
+            //recp.unbounded_send(msg.clone()).unwrap();
             recp.unbounded_send(Message::Text(msg2.clone().into())).unwrap();
         }
         future::ok(())
