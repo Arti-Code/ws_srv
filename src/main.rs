@@ -27,20 +27,20 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
     peer_map.lock().unwrap().insert(addr, tx);
     let (outgoing, incoming) = ws_stream.split();
     let broadcast_incoming = incoming.try_for_each(|msg| {
-        let data: Vec<u8> = msg.to_string().into_bytes().iter().map(|char| {
+        /* let data: Vec<u8> = msg.to_string().into_bytes().iter().map(|char| {
             *char
         }).collect();
         let mut msg2 = String::new();
         data.iter().for_each(|char| {
             msg2.push(*char as char);
-        });
-        println!("[{}] {} => {}", addr, msg.to_text().unwrap(), &msg2);
+        }); */
+        println!("[{}] {}", addr, msg.to_text().unwrap());
         let peers = peer_map.lock().unwrap();
         let broadcast_recipients =
             peers.iter().filter(|(peer_addr, _)| peer_addr != &&addr).map(|(_, ws_sink)| ws_sink);
         for recp in broadcast_recipients {
             //recp.unbounded_send(msg.clone()).unwrap();
-            recp.unbounded_send(Message::Text(msg2.clone().into())).unwrap();
+            recp.unbounded_send(msg.clone()).unwrap();
         }
         future::ok(())
     });
