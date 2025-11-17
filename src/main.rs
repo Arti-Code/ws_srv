@@ -48,7 +48,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                     if let Some((_, ws_sink)) = peers.get(&addr) {
                         ws_sink.unbounded_send(Message::text(list_message)).unwrap();
                     }
-                    return future::ok(());
+                    //return future::ok(());
                 }
             },
             Err(e) => {
