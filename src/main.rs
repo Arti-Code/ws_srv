@@ -18,10 +18,9 @@ type Tx = UnboundedSender<Message>;
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, (String, Tx)>>>;
 
 async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: SocketAddr) {
-    println!("new connection: {}", addr);
     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
         .await.expect("error during the websocket handshake occurred");
-    println!("websocket connection established: {}", addr);
+    println!("new websocket connection established: {}", addr);
     let (tx, rx) = unbounded();
     peer_map.lock().unwrap().insert(addr, (String::new(), tx));
     let (outgoing, incoming) = ws_stream.split();
@@ -45,7 +44,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                     let mut peers = peer_map.lock().unwrap();
                     if let Some((user_name, _)) = peers.get_mut(&addr) {
                         *user_name = name.clone();
-                        println!("user registered: {} as {}", addr, name);
+                        println!("[{}] registered as {}", addr, name);
                     }
                     return future::ok(());
                 }
