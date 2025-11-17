@@ -27,6 +27,15 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
     let (outgoing, incoming) = ws_stream.split();
     let broadcast_incoming = incoming.try_for_each(|msg| {
         //println!("[{}] {}", addr, msg.to_text().unwrap());
+        let sender_name = {
+            let peers = peer_map.lock().unwrap();
+            if let Some((name, _)) = peers.get(&addr) {
+                name.clone()
+            } else {
+                addr.to_string().clone()
+            }
+        };
+        println!("[{}]: {}", sender_name, msg.to_text().unwrap());
         match msg.to_text() {
             Ok(text) => {
                 if text.starts_with("/register ") {
