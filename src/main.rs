@@ -38,7 +38,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                     }
                     return future::ok(());
                 }
-                if text.starts_with("/list") {
+                if text == "/list" {
                     let peers = peer_map.lock().unwrap();
                     let user_list: Vec<String> = peers.iter()
                         .map(|(_, (name, _))| name.clone())
