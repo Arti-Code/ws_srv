@@ -27,6 +27,35 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
     let (outgoing, incoming) = ws_stream.split();
     let broadcast_incoming = incoming.try_for_each(|msg| {
         //println!("[{}] {}", addr, msg.to_text().unwrap());
+        match msg.to_text() {
+            Ok(text) => {
+                if text.starts_with("/register ") {
+                    let name = text.trim_start_matches("/register ").to_string();
+                    let mut peers = peer_map.lock().unwrap();
+                    if let Some((user_name, _)) = peers.get_mut(&addr) {
+                        *user_name = name.clone();
+                        println!("user registered: {} as {}", addr, name);
+                    }
+                    return future::ok(());
+                }
+                if text.starts_with("/list") {
+                    let peers = peer_map.lock().unwrap();
+                    let user_list: Vec<String> = peers.iter()
+                        .map(|(_, (name, _))| name.clone())
+                        .filter(|name| !name.is_empty())
+                        .collect();
+                    let list_message = format!("Connected users: {}", user_list.join(", "));
+                    if let Some((_, ws_sink)) = peers.get(&addr) {
+                        ws_sink.unbounded_send(Message::text(list_message)).unwrap();
+                    }
+                    return future::ok(());
+                }
+            },
+            Err(e) => {
+                println!("error processing message from {}: {}", addr, e);
+                return future::ok(());
+            }
+        }
         let peers = peer_map.lock().unwrap();
         let broadcast_recipients =
             peers.iter().filter(|(peer_addr, _)| peer_addr != &&addr)
