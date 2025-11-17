@@ -35,7 +35,9 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                 addr.to_string().clone()
             }
         };
-        println!("[{}]: {}", sender_name, msg.to_text().unwrap());
+        let s = format!("[{}]", &sender_name);
+        let m = msg.to_text().unwrap().replace(s.as_str(), "");
+        println!("[{}]: {}", sender_name, m.as_str());
         match msg.to_text() {
             Ok(text) => {
                 if text.starts_with("/register ") {
