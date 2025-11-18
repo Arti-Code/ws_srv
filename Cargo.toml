@@ -1,12 +1,13 @@
 [package]
 name = "chat_srv"
-version = "0.6.5"
+version = "0.6.6"
 edition = "2024"
 authors = ["Artur Gwoździowski"]
 
 [dependencies]
 futures-channel = "0.3.31"
 futures-util = "0.3.31"
+shuttle-runtime = "0.57.0"
 tokio = { version = "1.48.0", features = ["full"] }
 tokio-tungstenite = "0.28.0"
 
