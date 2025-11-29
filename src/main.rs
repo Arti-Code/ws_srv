@@ -26,6 +26,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
     let (outgoing, incoming) = ws_stream.split();
     let broadcast_incoming = incoming.try_for_each(|msg| {
         //println!("[{}] {}", addr, msg.to_text().unwrap());
+        let mut is_command = false;
         let sender_name = {
             let peers = peer_map.lock().unwrap();
             if let Some((name, _)) = peers.get(&addr) {
@@ -40,6 +41,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
         match msg.to_text() {
             Ok(text) => {
                 if text.starts_with("/register ") {
+                    is_command = true;
                     let name = text.trim_start_matches("/register ").to_string();
                     let mut peers = peer_map.lock().unwrap();
                     if let Some((user_name, _)) = peers.get_mut(&addr) {
@@ -49,6 +51,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
                     return future::ok(());
                 }
                 if text == "/list" {
+                    is_command = true;
                     let peers = peer_map.lock().unwrap();
                     let user_list: Vec<String> = peers.iter()
                         .map(|(_, (name, _))| name.clone())
@@ -68,7 +71,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
         }
         let peers = peer_map.lock().unwrap();
         let broadcast_recipients =
-            peers.iter().filter(|(peer_addr, _)| peer_addr != &&addr)
+            peers.iter().filter(|(peer_addr, _)| peer_addr != &&addr || !is_command)
             .map(|(_, (_, ws_sink))| ws_sink);
         for recp in broadcast_recipients {
             recp.unbounded_send(msg.clone()).unwrap();
