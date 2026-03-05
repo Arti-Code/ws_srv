@@ -1,3 +1,4 @@
+//mod signal;
 
 use std::{
     collections::HashMap,
@@ -16,6 +17,7 @@ use tokio_tungstenite::tungstenite::protocol::Message;
 
 type Tx = UnboundedSender<Message>;
 type PeerMap = Arc<Mutex<HashMap<SocketAddr, (String, Tx)>>>;
+//type Signaling = Arc<Mutex<HashMap<SocketAddr, (String, Tx)>>>;
 
 async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: SocketAddr) {
     let ws_stream = tokio_tungstenite::accept_async(raw_stream)
@@ -41,7 +43,7 @@ async fn handle_connection(peer_map: PeerMap, raw_stream: TcpStream, addr: Socke
         match msg.to_text() {
             Ok(text) => {
                 if text.starts_with("/register ") {
-                    is_command = true;
+                    //is_command = true;
                     let name = text.trim_start_matches("/register ").to_string();
                     let mut peers = peer_map.lock().unwrap();
                     if let Some((user_name, _)) = peers.get_mut(&addr) {
@@ -102,7 +104,7 @@ async fn main() -> Result<(), IoError> {
 async fn init_display() {
     let ver = env!("CARGO_PKG_VERSION");
     let author = env!("CARGO_PKG_AUTHORS");
-    let year = "2025 year";
+    let year = "2025-2026 year";
     println!("-=WEBSOCKET COMMUNICATION SERVER=-");
     println!("ver: {} | {} | {}", ver, author, year);
     println!("");
